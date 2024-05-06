@@ -3,14 +3,16 @@ import requests
 import re
 import socket
 import zlib
+import json
 from modules.formatter import Helper
 from ipwhois import IPWhois
 
 class Web():
-    def __init__(self, _web, _proxy, _type) -> None:
+    def __init__(self, _web, _proxy, _config, _type) -> None:
         # Objects
         self.formatter = Helper()
         self.proxy = _proxy
+        self.config = _config
         self._type = _type
 
         # Strings
@@ -77,8 +79,9 @@ class Web():
                     "telephone" : phones, 
                     "phone_country" : self.formatter.getPhoneCountry(phones[0]), 
                     "ASN" : f"{str(whois['asn_description']).capitalize()} ({whois['asn']})",
-                    "abuse-email": f"{', '.join(whois['nets'][0]['emails'])}",
-                    "google_safebrowsing" : self.getSafebrowsingStatus(self.website)
+                    "abuse-email": f"{', '.join(whois['nets'][0]['emails'])}" if whois['nets'][0]['emails'] != None else "",
+                    "google_safebrowsing" : self.getSafebrowsingStatus(self.website),
+                    "vt_res": self.makeVirusTotalScan(self.website)
             }
         else:
             print("[#] Received information about the phishing page.")
@@ -87,8 +90,9 @@ class Web():
                     "type": typ,
                     "hash" : str(zlib.crc32(str(self.website).encode())), 
                     "ASN" : f"{str(whois['asn_description']).capitalize()} ({whois['asn']})",
-                    "abuse-email": f"{', '.join(whois['nets'][0]['emails'])}",
-                    "google_safebrowsing" : self.getSafebrowsingStatus(self.website)
+                    "abuse-email": f"{', '.join(whois['nets'][0]['emails'])}" if whois['nets'][0]['emails'] != None else "",
+                    "google_safebrowsing" : self.getSafebrowsingStatus(self.website),
+                    "vt_res": self.makeVirusTotalScan(self.website)
             }
             
     def getWebsiteIP(self, domain : str) -> str:
@@ -99,6 +103,13 @@ class Web():
         return obj.lookup_whois()
         
     def getSafebrowsingStatus(self, web : str) -> bool:
-        obj = pysafebrowsing.SafeBrowsing("")
+        obj = pysafebrowsing.SafeBrowsing(self.config.getConfigCategory("api", "safebrowsing_key"))
         info = obj.lookup_url(web)
         return info['malicious']
+        
+    def makeVirusTotalScan(self, web : str) -> str:
+        parameters = {'apikey': self.config.getConfigCategory("api", "vt_api"), 'resource': web}
+        
+        response= requests.get(url='https://www.virustotal.com/vtapi/v2/url/report', params=parameters)
+        json_response = json.loads(response.text)
+        return json_response["permalink"]

@@ -1,2 +1,7 @@
-nsfw-detector=1.1.1
+nsfw-detector==1.1.1
 pysafebrowsing==0.1.2
+configparser==5.2.0
+requests==2.31.0
+ipwhois==1.2.0
+pyqt5==5.15.10
+pyqtwebengine==5.15.6

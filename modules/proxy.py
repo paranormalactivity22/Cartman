@@ -6,10 +6,10 @@ Manage to enter any malicious website using a proxy.
 """
 
 class ProxyManager():
-    def __init__(self):
+    def __init__(self, config : dict):
         self.proxies = []
-        self.protocol = "http"
-        self.timeout = 1000 # a second
+        self.protocol = config.getConfigCategory("proxy", "protocol")
+        self.timeout = config.getConfigCategory("proxy", "timeout") # a second
 
     def checkProxy(self, proxy: str) -> None:
         if not proxy in self.proxies and proxy != "":
@@ -57,7 +57,7 @@ class ProxyManager():
             print(f"[#] Check done. Found {len(self.proxies)} total proxies.\n")
             
         if not found or len(self.proxies) == 0:
-            print(f"[!] No Proxies found, defaulting to external IP Address.\n")
+            print(f"[!] No Proxies found, defaulting to current external IP Address.\n")
             
     def getProxyLen(self) -> int:
         return len(self.proxies)

@@ -1,3 +1,6 @@
+import json
+import os
+from modules.config import Config
 from modules.console import DrawConsoleTitle
 from modules.file import FileManager
 from modules.proxy import ProxyManager
@@ -8,8 +11,12 @@ from PyQt5.QtWidgets import QApplication
 class Main():
     def __init__(self):
         # Objects
+        self.config = Config()
         self.console = DrawConsoleTitle()
-        self.proxyman = ProxyManager()
+        self.proxyman = ProxyManager(self.config)
+        
+        # List
+        self.blockedDomains = []
         
         # Nonetype
         self.web = None
@@ -27,6 +34,7 @@ class Main():
         self.console.cls()
         self.console.draw()
         self.qApp = QApplication([""])
+        self.blockedDomains = json.load(open("./database/blacklist.json"))
         self.use_proxy = input("[?] Do you want to use proxy? [Y/N] -> ")
         if self.use_proxy == "Y":
             self.proxyman.getProxy()
@@ -44,7 +52,12 @@ class Main():
         else:
             self.phish_target = input("[?] Specify the phishing target (Leave empty for default) -> ")
             
-        self.web = Web(self.url, self.proxyman, self.typ == "Y")
+        if self.url in self.blockedDomains:
+            print("The url is safe. You do not need to take any further action.")
+            os.system("pause")
+            return
+        
+        self.web = Web(self.url, self.proxyman, self.config, self.typ == "Y")
         info = self.web.getPageInfo()
         screenshot.makeScreenshot(self.qApp, info, self.proxyman)
         info['phish_target'] = self.phish_target if len(self.phish_target) != 0 else "General"

@@ -25,6 +25,7 @@ class FileManager():
             F.write(f"Hash -> {self.info['hash']}\n")
             F.write(f"Google Safebrowsing -> {self.info['google_safebrowsing']}\n")
             F.write(f"Abuse Emails -> {self.info['abuse-email']}\n")
+            F.write(f"VT Info -> {self.info["vt_res"]}\n")
             F.write(f"Screenshot:\n")
             
             F.write(f"Additional Information:\n")
